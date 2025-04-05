@@ -53,6 +53,22 @@ def lambda_handler(event, context):
         )
         
         with conn.cursor() as cur:
+            # Kiểm tra xem phòng đã được đặt trong khoảng thời gian chưa
+            cur.execute("""
+                SELECT id FROM bookings 
+                WHERE room_id = %s 
+                AND (check_in_date < %s AND check_out_date > %s)
+            """, (room_id, check_out, check_in))
+            
+            # Nếu có kết quả thì phòng đã bị book
+            existing_booking = cur.fetchone()
+            if existing_booking:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'error': 'The room is already booked for the selected dates.'}),
+                    'headers': {'Content-Type': 'application/json'}
+                }
+
             # Chèn bảng ghi đặt phòng mới
             cur.execute(
                 "INSERT INTO bookings (user_id, room_id, check_in_date, check_out_date, payment_status) "
@@ -63,7 +79,7 @@ def lambda_handler(event, context):
             # Lấy ID của booking vừa tạo
             booking_id = cur.lastrowid
             
-            # Câp nhật trạng thái phòng sang booked
+            # Cập nhật trạng thái phòng sang booked
             cur.execute(
                 "UPDATE rooms SET availability_status = 'booked' WHERE id = %s", 
                 (room_id,)
@@ -75,7 +91,7 @@ def lambda_handler(event, context):
         # gửi thông báo đến SNS
         sns.publish(
             TopicArn = os.environ['SNS_TOPIC_ARN'],
-            Message = f"Booking inititated for room {room_id}. Awaiting payment."
+            Message = f"Booking initiated for room {room_id}. Awaiting payment."
         )
         
         # Trả về phản hồi thành công
@@ -97,37 +113,3 @@ def lambda_handler(event, context):
         # Đảm bảo đóng kết nối
         if conn:
             conn.close()
-
-
-
-# POST test api
-# {
-#     "user_id": 1,
-#     "room_id": 101,
-#     "check_in": "2025-05-01",
-#     "check_out": "2025-05-10"
-# }
-
-
-# Missing fields:
-#     {
-#     "user_id": 1,
-#     "room_id": 101
-# }
-
-# Ngày tháng không hợp lệ:
-# {
-#     "user_id": 1,
-#     "room_id": 101,
-#     "check_in": "2025-05-01",
-#     "check_out": "2025-13-10"
-# }
-
-
-# Lỗi cơ sở dữ liệu trong database:
-# {
-#     "user_id": 1,
-#     "room_id": 9999,
-#     "check_in": "2025-05-01",
-#     "check_out": "2025-05-10"
-# }
