@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h2>Hotel Reservation</h2>
+        <!-- User Functions -->
+        <h3>User Actions</h3>
+        <input id="location" placeholder="Enter location">
+        <button onclick="searchHotels()">Search</button>
+        <pre id="results"></pre>
+        <input id="roomId" placeholder="Room ID">
+        <button onclick="bookRoom()">Book</button>
+        <pre id="bookingResult"></pre>
+        <input id="bookingId" placeholder="Booking ID">
+        <button onclick="pay()">Pay</button>
+        <pre id="paymentResult"></pre>
+
+        <!-- Admin Functions -->
+        <h3>Admin Actions (Simulated)</h3>
+        <h4>Manage Hotels</h4>
+        <input id="hotelName" placeholder="Hotel Name">
+        <input id="hotelLocation" placeholder="Location">
+        <input id="hotelDesc" placeholder="Description">
+        <input id="hotelImage" placeholder="Image URL">
+        <button onclick="addHotel()">Add Hotel</button>
+        <input id="hotelId" placeholder="Hotel ID">
+        <button onclick="deleteHotel()">Delete Hotel</button>
+        <pre id="hotelResult"></pre>
+
+        <h4>Manage Rooms</h4>
+        <input id="roomHotelId" placeholder="Hotel ID">
+        <input id="roomType" placeholder="Type">
+        <input id="roomPrice" placeholder="Price">
+        <input id="roomStatus" placeholder="Availability Status">
+        <button onclick="addRoom()">Add Room</button>
+        <input id="roomIdUpdate" placeholder="Room ID">
+        <input id="roomNewStatus" placeholder="New Status">
+        <button onclick="updateRoomStatus()">Update Status</button>
+        <button onclick="deleteRoom()">Delete Room</button>
+        <pre id="roomResult"></pre>
+
+        <h4>View Bookings</h4>
+        <button onclick="viewBookings()">View All Bookings</button>
+        <pre id="bookingsResult"></pre>
+
+        <script>
+        const apiUrl = "https://lgtfvb5re1.execute-api.ap-southeast-1.amazonaws.com/dev";
+        async function searchHotels() { /* ... existing code ... */ }
+        async function bookRoom() { /* ... existing code ... */ }
+        async function pay() { /* ... existing code ... */ }
+
+        async function addHotel() {
+            const response = await fetch(`${apiUrl}/admin/hotels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('hotelName').value,
+                    location: document.getElementById('hotelLocation').value,
+                    description: document.getElementById('hotelDesc').value,
+                    image_url: document.getElementById('hotelImage').value
+                })
+            });
+            document.getElementById('hotelResult').innerHTML = await response.text();
+        }
+
+        async function deleteHotel() {
+            const response = await fetch(`${apiUrl}/admin/hotels`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: document.getElementById('hotelId').value })
+            });
+            document.getElementById('hotelResult').innerHTML = await response.text();
+        }
+
+        async function addRoom() {
+            const response = await fetch(`${apiUrl}/admin/rooms`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hotel_id: document.getElementById('roomHotelId').value,
+                    type: document.getElementById('roomType').value,
+                    price: document.getElementById('roomPrice').value,
+                    availability_status: document.getElementById('roomStatus').value
+                })
+            });
+            document.getElementById('roomResult').innerHTML = await response.text();
+        }
+
+        async function updateRoomStatus() {
+            const response = await fetch(`${apiUrl}/admin/rooms`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: document.getElementById('roomIdUpdate').value,
+                    availability_status: document.getElementById('roomNewStatus').value
+                })
+            });
+            document.getElementById('roomResult').innerHTML = await response.text();
+        }
+
+        async function deleteRoom() {
+            const response = await fetch(`${apiUrl}/admin/rooms`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: document.getElementById('roomIdUpdate').value })
+            });
+            document.getElementById('roomResult').innerHTML = await response.text();
+        }
+
+        async function viewBookings() {
+            const response = await fetch(`${apiUrl}/admin/bookings`);
+            document.getElementById('bookingsResult').innerHTML = await response.text();
+        }
+
+        
+    </script>
+    </body>
+</html>
